@@ -1,0 +1,16 @@
+# Blender MTL File: 'roadpack.blend'
+# Material Count: 1
+
+newmtl TFL_PED
+Ns 323.999994
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.057143 0.057143 0.057143
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Bump C:\\Users\\bizne\\Desktop\\models\\.a_CGTRADER\\RoadPack\\Textures\\TFL_PED\\TFL_PED_TFL_PED_Normal.png
+map_Ke C:\\Users\\bizne\\Desktop\\models\\.a_CGTRADER\\RoadPack\\Textures\\TFL_PED\\TFL_PED_TFL_PED_Emissive.png
+map_Ns C:\\Users\\bizne\\Desktop\\models\\.a_CGTRADER\\RoadPack\\Textures\\TFL_PED\\TFL_PED_TFL_PED_Roughness.png
+refl C:\\Users\\bizne\\Desktop\\models\\.a_CGTRADER\\RoadPack\\Textures\\TFL_PED\\TFL_PED_TFL_PED_Metallic.png

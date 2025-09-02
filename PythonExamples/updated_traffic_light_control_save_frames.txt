@@ -1,0 +1,242 @@
+import time
+import sys
+import math
+import keyboard
+sys.path.append(r'C:/Users/cgoodin/Desktop/vm_shared/shared_repos/mavs/src/mavs_python')
+#sys.path.append(r'C:\Users\mahfu\mavs\src\mavs_python')
+import mavs_interface as mavs
+import mavs_python_paths
+mavs_data_path = mavs_python_paths.mavs_data_path
+from Intersection import FourWayIntersection
+
+scene = mavs.MavsEmbreeScene()
+env = mavs.MavsEnvironment()
+mavs_scenefile = "/scenes/four_way_scene.json"
+scene.Load(mavs_data_path+mavs_scenefile)
+
+env.SetScene(scene)
+
+# Set environment properties
+env.SetTime(12) # 0-23
+env.SetFog(1.0) # 0.0-100.0
+env.SetSnow(0.0) # 0-25
+env.SetTurbidity(9.0) # 2-10
+env.SetAlbedo(0.4) # 0-1
+env.SetCloudCover(0.0) # 0-1
+env.SetRainRate(0.0) # 0-25
+env.SetWind( [2.5, 1.0] ) # Horizontal windspeed in m/s
+
+# create the intersection and add it to the environment
+center_intersection_offset = [0.0, 0.0, 0.0]
+light_positions = [[-6.9,-2.13,6.17],[2.13,-6.9, 6.17],[6.9,2.13,6.17],[-2.13,6.9, 6.17]]
+light_directions = [[1,0,0],[0,1,0],[-1,0,0],[0,-1,0]]
+light_offsets = [0.23,0.23,0.23,0.23]
+
+# center intersection control
+center_four_way = FourWayIntersection(center_intersection_offset, light_positions, light_directions, light_offsets)
+center_four_way.AddToScene(env)
+center_four_way.cycle_time = 10.0
+center_four_way.yellow_time = 3.0
+
+# north intersection control
+north_intersection_offset = [0.0, 50.0, 0.0]
+#light_positions = [[-6.9,-2.13,6.17],[2.13,-6.9, 6.17],[6.9,2.13,6.17],[-2.13,6.9, 6.17]]
+#light_directions = [[1,0,0],[0,1,0],[-1,0,0],[0,-1,0]]
+#light_offsets = [0.23,0.23,0.23,0.23]
+
+north_four_way = FourWayIntersection(north_intersection_offset, light_positions, light_directions, light_offsets)
+north_four_way.AddToScene(env)
+north_four_way.cycle_time = 10.0
+north_four_way.yellow_time = 3.0
+
+# south intersection control
+south_intersection_offset = [0.0, -50.0, 0.0]
+#light_positions = [[-6.9,-2.13,6.17],[2.13,-6.9, 6.17],[6.9,2.13,6.17],[-2.13,6.9, 6.17]]
+#light_directions = [[1,0,0],[0,1,0],[-1,0,0],[0,-1,0]]
+#light_offsets = [0.23,0.23,0.23,0.23]
+
+south_four_way = FourWayIntersection(south_intersection_offset, light_positions, light_directions, light_offsets)
+south_four_way.AddToScene(env)
+south_four_way.cycle_time = 10.0
+south_four_way.yellow_time = 3.0
+
+# east intersection control
+east_intersection_offset = [50.0, 0.0, 0.0]
+east_four_way = FourWayIntersection(east_intersection_offset, light_positions, light_directions, light_offsets)
+east_four_way.AddToScene(env)
+east_four_way.cycle_time = 10.0
+east_four_way.yellow_time = 3.0
+
+# west intersection control
+west_intersection_offset = [-50.0, 0.0, 0.0]
+west_four_way = FourWayIntersection(west_intersection_offset, light_positions, light_directions, light_offsets)
+west_four_way.AddToScene(env)
+west_four_way.cycle_time = 10.0
+west_four_way.yellow_time = 3.0
+
+#top_cam = mavs.MavsCamera()
+#top_cam.Initialize(512,512,0.0035,0.0035,0.0125)
+#top_cam.SetGammaAndGain(0.75,1.0)
+#top_cam.SetAntiAliasingFactor(5)
+#top_cam.SetPose([0, 0,500], [0.7071, 0.0, 0.7071, 0.0])
+#for i in range(10):
+#    top_cam.Update(env,1.0)
+#top_cam.Display()
+#top_cam.SaveCameraImage("top_down.bmp")
+
+
+cam = mavs.MavsCamera()
+cam.Initialize(480,270,0.006222,0.0035,0.0035)
+cam.SetGammaAndGain(0.75,1.0)
+cam.RenderShadows(True)
+#cam.SetPose([0, 0,2], [1.0, 0.0, 0.0, 0.0])
+cam.SetOffset([-7.5, 0,2], [1.0, 0.0, 0.0, 0.0])
+#cam.FreePose()
+
+drive_cam = mavs.MavsCamera()
+drive_cam.Initialize(256,256,0.0035,0.0035,0.0035)
+drive_cam.SetGammaAndGain(0.75,1.0)
+drive_cam.SetOffset([-7.5, 0,2], [1.0, 0.0, 0.0, 0.0])
+#drive_cam.FreePose()
+
+sf = 2
+hd_cam = mavs.MavsCamera()
+hd_cam.Initialize(int(1920/sf),int(1080/sf),(1920.0/1080.0)*0.0035, 0.0035,0.0035)
+hd_cam.SetGammaAndGain(0.75,2.0)
+hd_cam.RenderShadows(True)
+hd_cam.SetAntiAliasingFactor(5)
+
+
+veh = mavs.MavsRp3d()
+veh_file = 'forester_2017_rp3d_tires.json'
+veh.Load(mavs_data_path+'/vehicles/rp3d_vehicles/' + veh_file)
+veh.SetInitialPosition(-50.0, 50.0, 0.0) # in global ENU
+veh.SetInitialHeading(0.0) # in radians
+
+controller = mavs.MavsVehicleController()
+controller.SetDesiredPath([
+[	-50	,	50	],
+[	-48	,	50	],
+[	0	,	50	],
+[	48	,	50	],
+[	50	,	50	],
+[	50	,	48	],
+[	50	,	0	],
+[	50	,	-48	],
+[	50	,	-50	],
+[	48	,	-50	],
+[	0	,	-50	],
+[	-48	,	-50	],
+[	-50	,	-50	],
+[	-50	,	-48	],
+[	-50	,	0	],
+[	-50	,	48	]])
+controller.SetDesiredSpeed(5.0) # m/s 
+controller.SetSteeringScale(12.0)
+controller.SetWheelbase(3.3) # meters
+controller.SetMaxSteerAngle(0.855) # radians
+controller.TurnOnLooping()
+
+frame_num = 0
+dt = 1.0/100.0
+saving = False
+while (True):
+    # tw0 is for timing purposes used later
+    tw0 = time.time()
+
+    #controller.SetCurrentState(veh.GetPosition()[0],veh.GetPosition()[1],
+    #                               veh.GetSpeed(),veh.GetHeading())
+    #dc = controller.GetDrivingCommand(dt)
+    dc = drive_cam.GetDrivingCommand()
+    # Update the vehicle
+    veh.Update(env, dc.throttle, dc.steering, dc.braking, dt)
+
+    # Get the current camera position
+    #position, orientation = cam.GetPose()
+
+    #if keyboard.is_pressed('p'):
+    #    # get the current pose
+    #    print(position,orientation)
+    #    sys.stdout.flush()
+
+    if (frame_num%10==0):
+        drive_cam.SetPose(veh.GetPosition(),veh.GetOrientation())
+        drive_cam.Update(env,10*dt)
+        drive_cam.Display()
+    
+    center_four_way.Update(env, dt)
+    north_four_way.Update(env, dt)
+    south_four_way.Update(env, dt)
+    east_four_way.Update(env, dt)
+    west_four_way.Update(env, dt)
+
+    d = center_four_way.GetDistanceToIntersection(veh.GetPosition())
+    h = veh.GetHeading()
+    lt = [center_four_way.position[0]-veh.GetPosition()[0], center_four_way.position[1]-veh.GetPosition()[1]]
+    lt_heading = math.atan2(lt[1], lt[0])
+
+    if (d<20.0 and math.fabs(h - lt_heading)<0.5*math.pi):
+        print("center", center_four_way.GetClosestLightState(veh.GetPosition()))
+        sys.stdout.flush()
+
+    lt = [north_four_way.position[0]-veh.GetPosition()[0], north_four_way.position[1]-veh.GetPosition()[1]]
+    lt_heading = math.atan2(lt[1], lt[0])
+
+    d_north = north_four_way.GetDistanceToIntersection(veh.GetPosition())
+    if (d_north<20.0 and math.fabs(h - lt_heading)<0.5*math.pi):
+        print("north", north_four_way.GetClosestLightState(veh.GetPosition()))
+        sys.stdout.flush()
+
+    lt = [south_four_way.position[0]-veh.GetPosition()[0], south_four_way.position[1]-veh.GetPosition()[1]]
+    lt_heading = math.atan2(lt[1], lt[0])
+
+    d_south = south_four_way.GetDistanceToIntersection(veh.GetPosition())
+    if (d_south<20.0 and math.fabs(h - lt_heading)<0.5*math.pi):
+        print("south", south_four_way.GetClosestLightState(veh.GetPosition()))
+        sys.stdout.flush()
+
+    lt = [east_four_way.position[0] - veh.GetPosition()[0], east_four_way.position[1] - veh.GetPosition()[1]]
+    lt_heading = math.atan2(lt[1], lt[0])
+
+    d_east = east_four_way.GetDistanceToIntersection(veh.GetPosition())
+    if (d_east < 20.0 and math.fabs(h - lt_heading)<0.5*math.pi):
+       print("east", east_four_way.GetClosestLightState(veh.GetPosition()))
+       sys.stdout.flush()
+
+    lt = [west_four_way.position[0] - veh.GetPosition()[0], west_four_way.position[1] - veh.GetPosition()[1]]
+    lt_heading = math.atan2(lt[1], lt[0])
+
+    d_west = west_four_way.GetDistanceToIntersection(veh.GetPosition())
+    if (d_west < 20.0 and math.fabs(h - lt_heading)<0.5*math.pi):
+        print("west", west_four_way.GetClosestLightState(veh.GetPosition()))
+        sys.stdout.flush()
+    
+    if keyboard.is_pressed('l'):
+        saving = not saving
+        if saving:
+            print('Saving frames...')
+            sys.stdout.flush()
+        else:
+            print('Stopping save frames.')
+            sys.stdout.flush()
+    
+    if saving and frame_num%10==0:
+        cam.SetPose(veh.GetPosition(),veh.GetOrientation())
+        cam.Update(env,10*dt)
+        cam.Display()
+        cam.SaveCameraImage('frame_'+str(frame_num).zfill(4)+'.bmp')
+
+    if keyboard.is_pressed('r'):
+        print("Rendering hi-res frame...")
+        sys.stdout.flush()
+        hd_cam.SetPose(position,orientation)
+        hd_cam.Update(env,dt)
+        hd_cam.SaveCameraImage('image_'+str(frame_num).zfill(4)+'.bmp')
+        print("Rendered frame ",frame_num," in ",(time.time()-tw0)," seconds.")
+        sys.stdout.flush()
+        
+    if keyboard.is_pressed('f'):
+        print("Frame rate = ",1.0/(time.time()-tw0))
+        sys.stdout.flush()
+
+    frame_num = frame_num + 1

@@ -1,0 +1,1 @@
+C:\Users\kjbut\anaconda3\Lib\site-packages\mavspy\data

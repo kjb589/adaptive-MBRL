@@ -1,0 +1,80 @@
+import sys
+import math
+import time
+# Set the path to the mavs python api, mavs.py
+sys.path.append(r'C:/Users/cgoodin/Desktop/vm_shared/shared_repos/mavs/src/mavs_python')
+# Load the mavs python modules
+import mavs_interface as mavs
+import mavs_python_paths
+# Set the path to the mavs data folder
+mavs_data_path = mavs_python_paths.mavs_data_path
+
+# Select a scene and load it
+mavs_scenefile = "/scenes/czarnecki_surface_only.json"
+scene = mavs.MavsEmbreeScene()
+scene.Load(mavs_data_path+mavs_scenefile)
+
+# Create a MAVS environment and add the scene to it
+env = mavs.MavsEnvironment()
+env.SetScene(scene)
+env.SetTime(13) # 0-23
+env.SetFog(10.0) # 0.0-100.0
+env.SetTurbidity(7.0) # 2-10
+
+# create the camera for viewing the vehicle
+drive_cam = mavs.MavsCamera()
+# nx,ny,dx,dy,focal_len
+drive_cam.Initialize(384,384,0.0035,0.0035,0.0035)
+# offset of camera from vehicle CG
+drive_cam.SetOffset([-7.5,0.0,1.0],[1.0,0.0,0.0,0.0])
+# Set camera compression and gain
+drive_cam.SetGammaAndGain(0.5,2.0)
+# Turn off shadows for this camera for efficiency purposes
+drive_cam.RenderShadows(True)
+
+# Create and load a MAVS vehicle as the lead vehicle
+veh = mavs.MavsRp3d()
+# vehicle files are in the mavs "data/vehicles/rp3d_vehicles" folder
+veh_file = 'forester_2017_rp3d_tires.json'
+veh.Load(mavs_data_path+'/vehicles/rp3d_vehicles/' + veh_file)
+# Starting point for the vehicle
+veh.SetInitialPosition(100.0, 0.0, 2.0) # in global ENU
+veh.SetInitialHeading(-0.5*math.pi) # in radians
+
+# Create waypoints list
+waypoints = [[90,-20],[80,-40],[70,-65],[62,-86],[57,-100],[52,-113],[45,-130],[29,-131],[24,-120],[20,-110]]
+# Create a vehicle controller for the lead vehicle
+controller = mavs.MavsVehicleController()
+controller.SetDesiredPath(waypoints)
+controller.SetDesiredSpeed(5.0) # m/s 
+controller.SetSteeringScale(10.0)
+controller.SetWheelbase(3.3) # meters
+controller.SetMaxSteerAngle(0.866) # radians
+
+# simulation main loop
+dt = 1.0/100.0 # time step, seconds
+n = 0 # loop counter
+d = 10000.0 # distance to final waypoint
+while (d>6.0):
+    tw0 = time.time()
+    controller.SetCurrentState(veh.GetPosition()[0],veh.GetPosition()[1], veh.GetSpeed(), veh.GetHeading())
+    dc = controller.GetDrivingCommand(dt)
+
+    veh.Update(env, dc.throttle, dc.steering, dc.braking, dt)
+    position = veh.GetPosition()
+    orientation = veh.GetOrientation()
+    if n%10==0: #update cameras at 10 Hz
+        drive_cam.SetPose(position, orientation)
+        drive_cam.Update(env,0.1)
+        drive_cam.Display()
+
+    # check if the final waypoint is reached
+    dx = position[0]-waypoints[-2][0]
+    dy = position[1]-waypoints[-2][1]
+    d = math.sqrt(dx*dx + dy*dy)
+
+    # Update the loop counter
+    n = n+1
+    # don't let the sim go faster than real time
+    while time.time()-tw0<dt:
+        pass

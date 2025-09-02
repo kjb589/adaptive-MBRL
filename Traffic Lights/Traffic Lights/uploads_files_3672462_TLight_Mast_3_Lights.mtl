@@ -1,0 +1,29 @@
+# Blender MTL File: 'roadpack.blend'
+# Material Count: 2
+
+newmtl TFL
+Ns 323.999994
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.057143 0.057143 0.057143
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Bump C:\\Users\\bizne\\Desktop\\models\\.a_CGTRADER\\RoadPack\\Textures\\TFL\\TFL_latarnia_TFL_Normal.png
+map_Ke C:\\Users\\bizne\\Desktop\\models\\.a_CGTRADER\\RoadPack\\Textures\\TFL\\TFL_latarnia_TFL_Emissive.png
+map_Ns C:\\Users\\bizne\\Desktop\\models\\.a_CGTRADER\\RoadPack\\Textures\\TFL\\TFL_latarnia_TFL_Roughness.png
+refl C:\\Users\\bizne\\Desktop\\models\\.a_CGTRADER\\RoadPack\\Textures\\TFL\\TFL_latarnia_TFL_Metallic.png
+
+newmtl TFL_MAST
+Ns 323.999994
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.057143 0.057143 0.057143
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Bump C:\\Users\\bizne\\Desktop\\models\\.a_CGTRADER\\RoadPack\\Textures\\TFL_MAST\\TFL_MAST_TFL_MAST_Normal.png
+map_Ns C:\\Users\\bizne\\Desktop\\models\\.a_CGTRADER\\RoadPack\\Textures\\TFL_MAST\\TFL_MAST_TFL_MAST_Roughness.png
+refl C:\\Users\\bizne\\Desktop\\models\\.a_CGTRADER\\RoadPack\\Textures\\TFL_MAST\\TFL_MAST_TFL_MAST_Metallic.png
